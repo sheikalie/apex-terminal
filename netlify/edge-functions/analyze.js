@@ -53,12 +53,21 @@ export default async (request, context) => {
       body: JSON.stringify(body),
     });
   } catch (err) {
-    return json({ error: { message: `Failed to reach Anthropic: ${err.message}` } }, 502);
+    return json({ error: { message: 'Failed to reach Anthropic API: ' + err.message } }, 502);
   }
 
-  // ── Stream the response straight back ────────────────────────────────────────
+  // ── If Anthropic returned an error, surface the real message ─────────────────
+  if (!anthropicRes.ok) {
+    let errBody = {};
+    try { errBody = await anthropicRes.json(); } catch (_) {}
+    const msg = errBody?.error?.message
+      ?? 'Anthropic returned HTTP ' + anthropicRes.status + '. Check your API key has billing enabled at console.anthropic.com.';
+    return json({ error: { message: 'Anthropic error: ' + msg } }, anthropicRes.status);
+  }
+
+  // ── Stream the successful response straight back ──────────────────────────────
   return new Response(anthropicRes.body, {
-    status: anthropicRes.status,
+    status: 200,
     headers: {
       'Content-Type': anthropicRes.headers.get('Content-Type') ?? 'application/json',
       ...corsHeaders(),
