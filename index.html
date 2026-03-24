@@ -360,6 +360,144 @@
     font-size: 14px; line-height: 1.8; color: var(--text-secondary);
     white-space: pre-wrap; font-family: 'DM Sans', sans-serif;
   }
+
+  /* ── FEEDBACK WIDGET ── */
+  #feedback-widget {
+    display: none;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    margin-top: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #feedback-widget::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold), var(--gold-dim));
+  }
+
+  .feedback-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .feedback-title {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 16px; font-weight: 700; color: var(--text-primary);
+  }
+
+  .feedback-sub {
+    font-size: 12px; color: var(--text-muted); margin-top: 2px;
+  }
+
+  .feedback-skip {
+    font-size: 12px; color: var(--text-muted); cursor: pointer;
+    background: none; border: none; font-family: 'DM Sans', sans-serif;
+    transition: color 0.15s; padding: 4px 8px;
+  }
+
+  .feedback-skip:hover { color: var(--text-secondary); }
+
+  /* Star rating */
+  .stars-row {
+    display: flex; align-items: center; gap: 6px; margin-bottom: 20px;
+  }
+
+  .stars-label {
+    font-size: 13px; color: var(--text-secondary); margin-right: 8px;
+  }
+
+  .star {
+    font-size: 28px; cursor: pointer; transition: transform 0.1s;
+    opacity: 0.3; filter: grayscale(1);
+    background: none; border: none; padding: 2px;
+    line-height: 1;
+  }
+
+  .star.active, .star:hover { opacity: 1; filter: grayscale(0); transform: scale(1.15); }
+  .star.active ~ .star { opacity: 0.3; filter: grayscale(1); transform: none; }
+
+  /* Tag chips */
+  .tags-row {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;
+  }
+
+  .feedback-tag {
+    font-size: 12px; padding: 5px 12px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-secondary);
+    cursor: pointer; transition: all 0.15s;
+  }
+
+  .feedback-tag.selected {
+    background: var(--gold-glow);
+    border-color: var(--gold-dim);
+    color: var(--gold);
+  }
+
+  /* Text area */
+  .feedback-textarea {
+    width: 100%; background: var(--bg-elevated);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 16px; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; color: var(--text-primary);
+    resize: vertical; min-height: 80px;
+    outline: none; transition: border-color 0.2s;
+    margin-bottom: 16px;
+  }
+
+  .feedback-textarea:focus { border-color: var(--gold-dim); }
+  .feedback-textarea::placeholder { color: var(--text-muted); }
+
+  /* Email row */
+  .feedback-email-row {
+    display: flex; gap: 12px; margin-bottom: 16px; align-items: center;
+  }
+
+  .feedback-email {
+    flex: 1; background: var(--bg-elevated);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 10px 14px; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; color: var(--text-primary);
+    outline: none; transition: border-color 0.2s;
+  }
+
+  .feedback-email:focus { border-color: var(--gold-dim); }
+  .feedback-email::placeholder { color: var(--text-muted); }
+
+  .feedback-email-note { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+
+  /* Submit */
+  .feedback-submit {
+    background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+    border: none; border-radius: 4px;
+    padding: 10px 22px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+    color: #0a0c0f; cursor: pointer; transition: all 0.2s;
+  }
+
+  .feedback-submit:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+    box-shadow: 0 4px 14px rgba(201,168,74,0.3);
+  }
+
+  .feedback-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Success */
+  .feedback-success {
+    display: none; text-align: center; padding: 16px 0;
+  }
+
+  .feedback-success-icon { font-size: 36px; margin-bottom: 8px; }
+  .feedback-success-title { font-size: 16px; font-weight: 600; color: var(--accent-green); margin-bottom: 4px; }
+  .feedback-success-sub { font-size: 13px; color: var(--text-secondary); }
 </style>
 </head>
 <body>
@@ -435,6 +573,7 @@
   <div id="error-state">
     <div class="error-title">Analysis Failed</div>
     <div class="error-msg" id="error-msg">An error occurred. Please try again.</div>
+    <div id="error-hints" style="margin-top:14px;display:flex;flex-direction:column;gap:8px"></div>
   </div>
 
   <div id="results-container">
@@ -456,8 +595,61 @@
     <div class="sections-layout" id="sections-layout"></div>
   </div>
 
+  <!-- FEEDBACK WIDGET -->
+  <div id="feedback-widget">
+    <div class="feedback-header">
+      <div>
+        <div class="feedback-title">How was this analysis?</div>
+        <div class="feedback-sub">Your feedback shapes what APEX becomes. Takes 30 seconds.</div>
+      </div>
+      <button class="feedback-skip" onclick="skipFeedback()">Skip ×</button>
+    </div>
+    <div id="feedback-form-body">
+      <div class="stars-row">
+        <span class="stars-label">Overall quality:</span>
+        <button class="star" onclick="setStar(1)" id="star-1">⭐</button>
+        <button class="star" onclick="setStar(2)" id="star-2">⭐</button>
+        <button class="star" onclick="setStar(3)" id="star-3">⭐</button>
+        <button class="star" onclick="setStar(4)" id="star-4">⭐</button>
+        <button class="star" onclick="setStar(5)" id="star-5">⭐</button>
+      </div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px">What stood out? (pick any)</div>
+      <div class="tags-row" id="tags-row">
+        <div class="feedback-tag" onclick="toggleTag(this)">📊 Fundamentals were sharp</div>
+        <div class="feedback-tag" onclick="toggleTag(this)">📈 Technicals were useful</div>
+        <div class="feedback-tag" onclick="toggleTag(this)">🎯 Verdict felt accurate</div>
+        <div class="feedback-tag" onclick="toggleTag(this)">⚡ Catalysts section great</div>
+        <div class="feedback-tag" onclick="toggleTag(this)">🐌 Took too long</div>
+        <div class="feedback-tag" onclick="toggleTag(this)">🌊 Capital flows section weak</div>
+        <div class="feedback-tag" onclick="toggleTag(this)">📉 Scores seemed off</div>
+        <div class="feedback-tag" onclick="toggleTag(this)">🔁 Would use again</div>
+      </div>
+      <textarea class="feedback-textarea" id="feedback-comment" placeholder="Anything else? What would make this more useful for your investing process?"></textarea>
+      <div class="feedback-email-row">
+        <input type="email" class="feedback-email" id="feedback-email" placeholder="Email (optional — to follow up with you)">
+        <span class="feedback-email-note">Optional</span>
+      </div>
+      <button class="feedback-submit" id="feedback-submit-btn" onclick="submitFeedback()">Send Feedback →</button>
+    </div>
+    <div class="feedback-success" id="feedback-success">
+      <div class="feedback-success-icon">🙏</div>
+      <div class="feedback-success-title">Thank you — seriously.</div>
+      <div class="feedback-success-sub">Every response directly shapes what APEX becomes. You're helping build something real.</div>
+    </div>
+  </div>
+
+  <!-- Hidden Netlify Forms for form detection -->
+  <form name="apex-feedback" netlify netlify-honeypot="bot-field" style="display:none">
+    <input name="bot-field"><input name="ticker"><input name="rating">
+    <input name="tags"><input name="comment"><input name="email"><input name="timestamp">
+  </form>
+  <form name="beta-signup" netlify netlify-honeypot="bot-field" style="display:none">
+    <input name="bot-field"><input name="email">
+  </form>
+
   <div class="footer-disclaimer">
     ⚠️ This analysis is generated by AI for informational and educational purposes only. It does not constitute financial advice, investment recommendations, or solicitation to buy or sell any securities. Always conduct your own due diligence and consult a licensed financial advisor before making investment decisions. Past performance is not indicative of future results.
+    &nbsp;·&nbsp; <a href="beta.html" style="color:var(--text-muted);text-decoration:none">About the Beta</a>
   </div>
 
 </div>
@@ -734,7 +926,7 @@ async function runAnalysis() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 4096,
         tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         messages: [{ role: 'user', content: buildPrompt(raw) }]
@@ -778,8 +970,47 @@ async function runAnalysis() {
 
     setState('results');
 
+    // Reset & reveal feedback widget after a short delay
+    selectedRating = 0; selectedTags = [];
+    ['feedback-form-body','feedback-success'].forEach((id,i) => {
+      document.getElementById(id).style.display = i===0 ? 'block' : 'none';
+    });
+    document.getElementById('feedback-comment').value = '';
+    document.getElementById('feedback-email').value = '';
+    document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.feedback-tag').forEach(t => t.classList.remove('selected'));
+    const fsb = document.getElementById('feedback-submit-btn');
+    fsb.disabled = false; fsb.textContent = 'Send Feedback →';
+    document.getElementById('feedback-widget').style.display = 'none';
+    setTimeout(showFeedback, 1400);
+
   } catch (err) {
-    document.getElementById('error-msg').textContent = err.message;
+    const msg = err.message || 'Unknown error';
+    document.getElementById('error-msg').textContent = msg;
+
+    // Show contextual hints based on error type
+    const hints = document.getElementById('error-hints');
+    hints.innerHTML = '';
+    const hintStyle = 'padding:10px 14px;border-radius:5px;font-size:12px;line-height:1.6;';
+
+    if (msg.includes('401') || msg.toLowerCase().includes('api key') || msg.toLowerCase().includes('authentication')) {
+      hints.innerHTML = '<div style="' + hintStyle + 'background:rgba(243,156,18,0.1);border:1px solid rgba(243,156,18,0.3);color:#f39c12">' +
+        '<strong>API Key Issue:</strong> Go to <strong>Netlify → Site configuration → Environment variables</strong> and confirm <code>ANTHROPIC_API_KEY</code> is set correctly, then trigger a new deploy.' +
+        '</div>';
+    } else if (msg.includes('402') || msg.toLowerCase().includes('billing') || msg.toLowerCase().includes('credit')) {
+      hints.innerHTML = '<div style="' + hintStyle + 'background:rgba(243,156,18,0.1);border:1px solid rgba(243,156,18,0.3);color:#f39c12">' +
+        '<strong>Billing Issue:</strong> Your Anthropic account needs a payment method. Go to <strong>console.anthropic.com → Billing</strong> and add a credit card.' +
+        '</div>';
+    } else if (msg.includes('500') || msg.includes('502') || msg.includes('529')) {
+      hints.innerHTML = '<div style="' + hintStyle + 'background:rgba(58,123,213,0.1);border:1px solid rgba(58,123,213,0.3);color:#5a9bd8">' +
+        '<strong>Temporary Error:</strong> Anthropic's servers may be busy. Wait 30 seconds and try again. If it persists, check <strong>status.anthropic.com</strong>.' +
+        '</div>';
+    } else if (msg.includes('model')) {
+      hints.innerHTML = '<div style="' + hintStyle + 'background:rgba(243,156,18,0.1);border:1px solid rgba(243,156,18,0.3);color:#f39c12">' +
+        '<strong>Model Error:</strong> The model name may be outdated. This has been fixed in the latest file update — re-upload <code>index.html</code> to GitHub.' +
+        '</div>';
+    }
+
     setState('error');
   } finally {
     btn.disabled = false;
@@ -790,6 +1021,65 @@ async function runAnalysis() {
 document.getElementById('ticker-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') runAnalysis();
 });
+
+// ─── FEEDBACK WIDGET ─────────────────────────────────────────────────────────
+let selectedRating = 0;
+let selectedTags = [];
+
+function showFeedback() {
+  const w = document.getElementById('feedback-widget');
+  w.style.display = 'block';
+  w.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function skipFeedback() {
+  document.getElementById('feedback-widget').style.display = 'none';
+}
+
+function setStar(n) {
+  selectedRating = n;
+  for (let i = 1; i <= 5; i++) {
+    const s = document.getElementById('star-' + i);
+    s.classList.toggle('active', i <= n);
+  }
+}
+
+function toggleTag(el) {
+  el.classList.toggle('selected');
+  const tag = el.textContent.trim();
+  if (el.classList.contains('selected')) {
+    if (!selectedTags.includes(tag)) selectedTags.push(tag);
+  } else {
+    selectedTags = selectedTags.filter(t => t !== tag);
+  }
+}
+
+async function submitFeedback() {
+  const btn = document.getElementById('feedback-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  const payload = {
+    'form-name': 'apex-feedback',
+    ticker: currentTicker,
+    rating: selectedRating ? String(selectedRating) + '/5' : 'Not rated',
+    tags: selectedTags.join(', ') || 'None selected',
+    comment: document.getElementById('feedback-comment').value || '',
+    email: document.getElementById('feedback-email').value || '',
+    timestamp: new Date().toISOString(),
+  };
+
+  try {
+    await fetch('/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(payload).toString(),
+    });
+  } catch (_) { /* fail silently */ }
+
+  document.getElementById('feedback-form-body').style.display = 'none';
+  document.getElementById('feedback-success').style.display = 'block';
+}
 </script>
 </body>
 </html>
