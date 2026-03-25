@@ -50,7 +50,7 @@
 <!-- TEST 4: Full prompt with max tokens -->
 <div class="test">
   <div class="test-title">TEST 4 · Full analysis — does it complete without timeout?</div>
-  <p style="color:#8a9ab5;font-size:12px;margin-bottom:12px">Runs the complete 10-section analysis for IBM with max_tokens: 8000. This is exactly what the main app does.</p>
+  <p style="color:#8a9ab5;font-size:12px;margin-bottom:12px">Runs the complete 10-section analysis for IBM with max_tokens: 6000. This is exactly what the main app does.</p>
   <button class="btn" onclick="test4()">Run Test 4</button>
   <div class="result pending" id="r4">Not run yet</div>
 </div>
@@ -145,14 +145,15 @@ async function test3() {
 
 // TEST 4 — full analysis
 async function test4() {
-  setResult('r4', 'Running... full analysis takes 30–60 seconds, please wait', 'pending');
+  const t0 = Date.now();
+  setResult('r4', 'Running... watching the clock. Will show elapsed time when done.', 'pending');
   try {
     const res = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 8000,
+        max_tokens: 6000,
         messages: [{ role: 'user', content: 'You are an expert stock analyst. Write a detailed 10-section investment report for IBM (ticker: IBM). Cover: 1) Executive Summary, 2) Company Overview, 3) Financials, 4) Valuation, 5) Growth Prospects, 6) Risks, 7) Technical Analysis, 8) Peer Comparison, 9) Catalysts, 10) Verdict with price target. Be specific with numbers.' }]
       })
     });
@@ -163,8 +164,9 @@ async function test4() {
     }
     const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
     if (text) {
+      const elapsed = ((Date.now() - t0)/1000).toFixed(1);
       setResult('r4',
-        '✅ SUCCESS! Full analysis returned (' + text.length + ' chars, stop_reason: ' + data.stop_reason + ')\n\n' +
+        '✅ SUCCESS in ' + elapsed + 's! (' + text.length + ' chars, stop_reason: ' + data.stop_reason + ')\n\n' +
         '--- FIRST 500 CHARS ---\n' + text.slice(0, 500) + '\n\n[... ' + Math.max(0, text.length - 500) + ' more chars ...]',
         'ok'
       );

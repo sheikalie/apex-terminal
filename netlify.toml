@@ -1,25 +1,23 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# APEX · Netlify Configuration
-# ─────────────────────────────────────────────────────────────────────────────
-
 [build]
   publish = "."
 
-# Regular serverless function config (Node.js, no 26s hard timeout issue)
 [functions]
   directory = "netlify/functions"
+  node_bundler = "esbuild"
 
-# Route /api/analyze to our serverless function
+# Extend function timeout to 60 seconds (paid plans support up to 26s default, 
+# configure higher with netlify.toml on Pro)
+[functions."analyze"]
+  timeout = 60
+
 [[redirects]]
   from = "/api/analyze"
   to = "/.netlify/functions/analyze"
   status = 200
+  force = true
 
-# Security headers
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Frame-Options            = "DENY"
-    X-Content-Type-Options     = "nosniff"
-    Referrer-Policy            = "strict-origin-when-cross-origin"
-    Permissions-Policy         = "geolocation=(), microphone=(), camera=()"
+    X-Frame-Options        = "DENY"
+    X-Content-Type-Options = "nosniff"
