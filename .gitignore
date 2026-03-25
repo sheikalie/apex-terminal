@@ -1,0 +1,16 @@
+# Local environment — NEVER commit API keys
+.env
+.env.local
+.env*.local
+
+# Netlify local cache
+.netlify/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
